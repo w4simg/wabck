@@ -1,0 +1,48 @@
+{
+  "name": "create-wabck",
+  "version": "1.0.0",
+  "description": "Scaffold production-ready Express.js backends in seconds",
+  "type": "module",
+  "bin": {
+    "wabck": "src/index.js",
+    "create-wabck": "src/index.js"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.1.0",
+    "boxen": "^8.0.1",
+    "chalk": "^5.3.0",
+    "execa": "^9.3.0",
+    "figlet": "^1.7.0",
+    "fs-extra": "^11.2.0",
+    "gradient-string": "^3.0.0",
+    "ora": "^8.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "express",
+    "backend",
+    "scaffold",
+    "boilerplate",
+    "cli",
+    "create-app",
+    "nodejs",
+    "typescript",
+    "rest",
+    "graphql"
+  ],
+  "author": "w4simz",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
+}
