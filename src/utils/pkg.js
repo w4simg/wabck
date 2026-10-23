@@ -117,10 +117,18 @@ export function buildPackageJson(options) {
 
   // ── API Style ──────────────────────────────────────────────────────────────
   if (apiStyle === 'graphql') {
-    dependencies['@apollo/server']         = '^4.10.5';
-    dependencies['graphql']                = '^16.9.0';
+    dependencies['@apollo/server']            = '^4.10.5';
+    dependencies['graphql']                   = '^16.9.0';
     dependencies['@as-integrations/express4'] = '^1.0.0';
   }
+
+  // ── Swagger / OpenAPI ──────────────────────────────────────────────────────
+  if (options.swagger) {
+    dependencies['swagger-jsdoc']     = '^6.2.8';
+    dependencies['swagger-ui-express'] = '^5.0.1';
+    if (isTS) devDependencies['@types/swagger-ui-express'] = '^4.1.6';
+  }
+
 
   return {
     name:        projectName,

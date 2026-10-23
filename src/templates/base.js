@@ -8,8 +8,9 @@ const ext = (isTS) => (isTS ? 'js' : 'js'); // ESM always uses .js imports
 
 /** Generate src/app.js or src/app.ts */
 export function app(options) {
-  const { apiStyle, language } = options;
+  const { apiStyle, language, swagger } = options;
   const isTS = language === 'typescript';
+  const hasSwagger = swagger === true;
 
   const typeImport = isTS ? `import { Application } from 'express';\n` : '';
   const appType    = isTS ? ': Application' : '';
@@ -31,7 +32,15 @@ app.use('/graphql', expressMiddleware(apolloServer, {
 `
       : '';
 
-  return `${typeImport}import express${isTS ? ', { Application }' : ''} from 'express';
+  const swaggerImport = hasSwagger
+    ? `import { setupSwagger } from './config/swagger.js';\n`
+    : '';
+
+  const swaggerMount = hasSwagger
+    ? `\n// ─────────────────────────────────────────────────────────────────────────────\n// Swagger UI — available at /api-docs (development)\n// ─────────────────────────────────────────────────────────────────────────────\nif (process.env.NODE_ENV !== 'production') {\n  setupSwagger(app);\n}\n`
+    : '';
+
+  return `${typeImport}${swaggerImport}import express${isTS ? ', { Application }' : ''} from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -73,7 +82,7 @@ ${graphqlBlock}
 // API Routes — versioned under /api/v1
 // ─────────────────────────────────────────────────────────────────────────────
 app.use('/api/v1', routes);
-
+${swaggerMount}
 // ─────────────────────────────────────────────────────────────────────────────
 // Error Handling — Order matters: 404 must come before the error handler
 // ─────────────────────────────────────────────────────────────────────────────
@@ -86,12 +95,16 @@ export default app;
 
 /** Generate src/server.js or src/server.ts */
 export function server(options) {
-  const { database, language, projectName } = options;
+  const { database, language, projectName, swagger } = options;
   const isTS = language === 'typescript';
   const hasDB = database !== 'none';
+  const hasSwagger = swagger === true;
 
   const dbImport = hasDB ? `import connectDB from './config/db.js';\n` : '';
   const dbConnect = hasDB ? `  await connectDB();\n` : '';
+  const swaggerLog = hasSwagger
+    ? `      console.log(\`  ➜  Docs:    http://localhost:\${PORT}/api-docs\`);\n`
+    : '';
 
   return `import 'dotenv/config';
 import app from './app.js';
@@ -109,7 +122,7 @@ ${dbConnect}    const server = app.listen(PORT, HOST, () => {
       console.log(\`  🚀 ${projectName} is running!\`);
       console.log(\`  ➜  Local:   http://localhost:\${PORT}\`);
       console.log(\`  ➜  Health:  http://localhost:\${PORT}/api/v1/health\`);
-      console.log(\`\`);
+${swaggerLog}      console.log(\`\`);
 
     });
 
@@ -311,7 +324,7 @@ export default [
 
 /** Generate README.md */
 export function readme(options) {
-  const { projectName, language, database, auth, validation, apiStyle, docker, packageManager } = options;
+  const { projectName, language, database, auth, validation, apiStyle, docker, swagger, packageManager } = options;
   const isTS = language === 'typescript';
   const pm = packageManager;
 
@@ -333,13 +346,13 @@ ${pm} run dev
 \`\`\`
 
 The API will be available at **http://localhost:5000**
-
+${swagger ? `\n📖 **API Documentation (Swagger UI):** http://localhost:5000/api-docs\n` : ''}
 ## 📁 Project Structure
 
 \`\`\`
 ${projectName}/
 ├── src/
-│   ├── config/          # DB connection, env validation
+│   ├── config/          # DB connection, env validation${swagger ? ', swagger' : ''}
 │   ├── controllers/     # Request handlers
 │   ├── middlewares/     # Error, auth, rate-limiter
 │   ├── models/          # Data models
@@ -363,7 +376,7 @@ ${validation !== 'none' ? `│   ├── validators/      # Input validation\n
 | Database      | ${database === 'none' ? '—' : database}             |
 | Auth          | ${auth === 'none' ? '—' : auth}                     |
 ${validation !== 'none' ? `| Validation    | ${validation}                                        |\n` : ''}| API Style     | ${apiStyle === 'graphql' ? 'GraphQL (Apollo Server 4)' : 'REST'} |
-| Docker        | ${docker ? '✔ Dockerfile + docker-compose' : '—'}   |
+${swagger ? '| API Docs      | ✔ Swagger / OpenAPI 3.0 (/api-docs)                  |\n' : ''}| Docker        | ${docker ? '✔ Dockerfile + docker-compose' : '—'}   |
 
 ## 🔗 Endpoints
 
@@ -377,7 +390,7 @@ ${validation !== 'none' ? `| Validation    | ${validation}                      
 | PUT    | \`/api/v1/users/:id\` | Update user     |
 | DELETE | \`/api/v1/users/:id\` | Delete user     |
 ${auth === 'jwt' ? `| POST   | \`/api/v1/auth/register\` | Register    |\n| POST   | \`/api/v1/auth/login\` | Login           |` : ''}
-
+${swagger ? `| GET    | \`/api-docs\`      | Swagger UI (interactive) |\n| GET    | \`/api-docs.json\` | Raw OpenAPI JSON spec    |\n` : ''}
 ${docker ? `## 🐳 Docker\n\n\`\`\`bash\ndocker compose up --build\n\`\`\`\n` : ''}
 ${isTS ? `## 🏗 Build\n\n\`\`\`bash\n${pm} run build\n${pm} start\n\`\`\`\n` : ''}
 ## 📜 License

@@ -1,6 +1,6 @@
 {
   "name": "create-wabck",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Scaffold production-ready Express.js backends in seconds",
   "type": "module",
   "bin": {
@@ -40,9 +40,5 @@
     "graphql"
   ],
   "author": "w4simz",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": ""
-  }
+  "license": "MIT"
 }

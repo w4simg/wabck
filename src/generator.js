@@ -20,7 +20,7 @@ import * as T from './templates/index.js';
  * @returns {Promise<string>} - Absolute path to the created project
  */
 export async function generate(options) {
-  const { projectName, language, database, auth, validation, apiStyle, docker } = options;
+  const { projectName, language, database, auth, validation, apiStyle, docker, swagger } = options;
   const isTS    = language === 'typescript';
   const ext     = isTS ? 'ts' : 'js';
   const hasDB   = database !== 'none';
@@ -28,6 +28,7 @@ export async function generate(options) {
   const hasJwt  = auth === 'jwt';
   const isGql   = apiStyle === 'graphql';
   const hasValidation = validation && validation !== 'none';
+  const hasSwagger    = swagger === true;
 
   const projectDir = path.resolve(process.cwd(), projectName);
   const createdDirs = [];
@@ -107,6 +108,9 @@ export async function generate(options) {
     // ── Config ────────────────────────────────────────────────────────────
     await write(`src/config/db.${ext}`,  T.db(options));
     await write(`src/config/env.${ext}`, T.envConfig(options));
+    if (hasSwagger) {
+      await write(`src/config/swagger.${ext}`, T.swaggerConfig(options));
+    }
 
     // ── Routes ────────────────────────────────────────────────────────────
     await write(`src/routes/index.${ext}`,        T.routesIndex(options));

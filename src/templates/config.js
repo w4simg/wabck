@@ -215,18 +215,24 @@ ${database === 'mongodb'    ? "  mongoUri: process.env.MONGODB_URI || '',\n" : '
 `;
 }
 
-/** Generate src/config/swagger.js */
-export function swagger(options) {
+/** Generate src/config/swagger.js or swagger.ts */
+export function swaggerConfig(options) {
   const { projectName, language } = options;
   const isTS = language === 'typescript';
+  const ext = isTS ? 'ts' : 'js';
 
   return `import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
-
+${isTS ? `import type { Express } from 'express';\n` : ''}
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Swagger / OpenAPI 3.0 Configuration
+// ─────────────────────────────────────────────────────────────────────────────
 
 // Read version from package.json
 let version = '1.0.0';
@@ -235,37 +241,82 @@ try {
   version = pkg.version;
 } catch { /* use default */ }
 
-const options = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title:       '${projectName} API',
-      version,
-      description: 'Auto-generated API documentation for ${projectName}',
-      license: { name: 'MIT' },
-      contact:     { name: '${projectName} Support' },
+const swaggerDefinition = {
+  openapi: '3.0.0',
+  info: {
+    title:       '${projectName} API',
+    version,
+    description: 'REST API documentation for ${projectName}',
+    license:     { name: 'MIT' },
+    contact:     { name: '${projectName} Team' },
+  },
+  servers: [
+    { url: \`http://localhost:\${process.env.PORT || 5000}/api/v1\`, description: 'Development' },
+    { url: '/api/v1', description: 'Relative (proxy-friendly)' },
+  ],
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type:         'http',
+        scheme:       'bearer',
+        bearerFormat: 'JWT',
+        description:  'Enter your JWT token. Example: Bearer eyJhbGci...',
+      },
     },
-    servers: [
-      { url: \`http://localhost:\${process.env.PORT || 5000}/api/v1\`, description: 'Development' },
-    ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type:   'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
+    schemas: {
+      ApiResponse: {
+        type: 'object',
+        properties: {
+          success:    { type: 'boolean' },
+          statusCode: { type: 'integer' },
+          message:    { type: 'string'  },
+          data:       { },
+        },
+      },
+      ApiError: {
+        type: 'object',
+        properties: {
+          success:    { type: 'boolean', example: false },
+          statusCode: { type: 'integer' },
+          message:    { type: 'string'  },
+          errors:     { type: 'array', items: { type: 'string' } },
         },
       },
     },
-    security: [{ bearerAuth: [] }],
   },
-  // Pick up JSDoc @swagger annotations from all route files
+  security: [{ bearerAuth: [] }],
+};
+
+const swaggerOptions = {
+  definition: swaggerDefinition,
+  // Scans all route files for @swagger JSDoc annotations
   apis: [
     path.join(__dirname, '../routes/*.js'),
     path.join(__dirname, '../routes/*.ts'),
   ],
 };
 
-export const swaggerSpec = swaggerJsdoc(options);
+export const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+/**
+ * Mounts the Swagger UI at /api-docs
+ * @param {${isTS ? 'Express' : 'import("express").Express'}} app
+ */
+export function setupSwagger(app${isTS ? ': Express' : ''}) {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customSiteTitle: '${projectName} API Docs',
+    swaggerOptions: {
+      persistAuthorization: true,
+      docExpansion: 'list',
+      filter: true,
+    },
+  }));
+
+  // Raw JSON spec endpoint (useful for Postman / code-gen)
+  app.get('/api-docs.json', (_req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+  });
+}
 `;
 }

@@ -73,10 +73,10 @@ async function main() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function printSuccessSummary(options, projectDir) {
-  const { projectName, language, database, auth, validation, docker, packageManager, installDeps } = options;
+  const { projectName, language, database, auth, validation, docker, swagger, packageManager, installDeps } = options;
   const pm      = packageManager;
   const relDir  = path.relative(process.cwd(), projectDir) || projectName;
-  const devCmd  = language === 'typescript' ? `${pm} run dev` : `${pm} run dev`;
+  const devCmd  = `${pm} run dev`;
 
   // Progress recap
   log.success('Project scaffolded successfully!');
@@ -85,7 +85,8 @@ function printSuccessSummary(options, projectDir) {
   log.label('  Database',   database === 'none' ? 'None' : database);
   log.label('  Auth',       auth === 'none' ? 'None' : auth);
   if (validation && validation !== 'none') log.label('  Validation', validation);
-  if (docker)  log.label('  Docker',     'Dockerfile + docker-compose.yml');
+  if (swagger)  log.label('  API Docs',   'Swagger UI → /api-docs');
+  if (docker)   log.label('  Docker',     'Dockerfile + docker-compose.yml');
   log.blank();
 
   // Next steps

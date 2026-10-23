@@ -16,7 +16,9 @@ export {
 export {
   db,
   envConfig,
+  swaggerConfig,
 } from './config.js';
+
 
 export {
   routesIndex,

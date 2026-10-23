@@ -62,7 +62,7 @@ export async function runPrompts(initialName) {
     choices: [
       { name: `${chalk.yellow('JWT')}      — jsonwebtoken + bcryptjs`, value: 'jwt'      },
       { name: `${chalk.blue('Clerk')}     — @clerk/express`,           value: 'clerk'    },
-      { name: `${chalk.orange?.('Firebase') || chalk.red('Firebase')} — firebase-admin`, value: 'firebase' },
+      { name: `${chalk.hex('#FFA500')('Firebase')} — firebase-admin`, value: 'firebase' },
       { name: `${chalk.dim('None')}       — no auth`,                   value: 'none'     },
     ],
   });
@@ -93,11 +93,18 @@ export async function runPrompts(initialName) {
     default: true,
   });
 
-  // 9. Install Dependencies
+  // 9. Swagger / OpenAPI docs
+  const swagger = await confirm({
+    message: 'Include Swagger / OpenAPI 3 docs? (served at /api-docs)',
+    default: true,
+  });
+
+  // 10. Install Dependencies
   const installDeps = await confirm({
     message: `Install dependencies now with ${chalk.cyan(packageManager)}?`,
     default: true,
   });
+
 
   return {
     projectName: projectName.trim(),
@@ -108,6 +115,7 @@ export async function runPrompts(initialName) {
     validation,
     apiStyle,
     docker,
+    swagger,
     installDeps,
   };
 }

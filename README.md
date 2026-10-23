@@ -73,6 +73,8 @@ my-api/
 | POST | `/api/v1/auth/register` | Register (JWT) |
 | POST | `/api/v1/auth/login` | Login (JWT) |
 | GET | `/api/v1/auth/me` | Profile (JWT) |
+| GET | `/api-docs` | Swagger UI (Interactive Docs) |
+| GET | `/api-docs.json` | OpenAPI 3.0 JSON Spec |
 
 ## 📜 License
 

@@ -27,10 +27,40 @@ export default router;
 
 /** Generate src/routes/health.route.js */
 export function healthRoute(options) {
-  const { language, database, projectName } = options;
+  const { language, database, projectName, swagger } = options;
   const isTS = language === 'typescript';
 
   const typeImports = isTS ? `import { Request, Response } from 'express';\n` : '';
+
+  const swaggerDoc = swagger
+    ? `/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Health check & uptime
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Service metrics, uptime, version, and memory usage
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status: { type: string, example: ok }
+ *                 uptime: { type: integer, example: 120 }
+ *                 version: { type: string, example: 1.0.0 }
+ *                 env: { type: string, example: development }
+ *                 timestamp: { type: string, example: "2026-01-01T00:00:00.000Z" }
+ */
+`
+    : `/**
+ * GET /api/v1/health
+ *
+ * Returns the current health status of the API including uptime,
+ * version, environment, and timestamp.
+ */
+`;
 
   return `${typeImports}import { Router } from 'express';
 import { readFileSync } from 'fs';
@@ -48,13 +78,7 @@ try {
 
 const router = Router();
 
-/**
- * GET /api/v1/health
- *
- * Returns the current health status of the API including uptime,
- * version, environment, and timestamp.
- */
-router.get('/', (_req${isTS ? ': Request' : ''}, res${isTS ? ': Response' : ''}) => {
+${swaggerDoc}router.get('/', (_req${isTS ? ': Request' : ''}, res${isTS ? ': Response' : ''}) => {
   res.status(200).json({
     status:    'ok',
     uptime:    Math.floor(process.uptime()),
@@ -74,7 +98,7 @@ export default router;
 
 /** Generate src/routes/user.route.js */
 export function userRoute(options) {
-  const { auth, language, validation } = options;
+  const { auth, language, validation, swagger } = options;
   const isTS = language === 'typescript';
   const hasJwt = auth === 'jwt';
   const hasValidation = validation && validation !== 'none';
@@ -106,6 +130,85 @@ export function userRoute(options) {
     }
   }
 
+  const swaggerDoc = swagger
+    ? `/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Retrieve all users
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: List of users retrieved successfully
+ *   post:
+ *     summary: Create a new user
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, email]
+ *             properties:
+ *               name: { type: string, example: "Alex Smith" }
+ *               email: { type: string, example: "alex@example.com" }
+ *               password: { type: string, example: "SecurePass123!" }
+ *     responses:
+ *       201:
+ *         description: User created
+ *
+ * /users/{id}:
+ *   get:
+ *     summary: Get user by ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: User found
+ *       404:
+ *         description: User not found
+ *   put:
+ *     summary: Update user by ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string }
+ *               email: { type: string }
+ *     responses:
+ *       200:
+ *         description: User updated
+ *   delete:
+ *     summary: Delete user by ID
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: User deleted
+ */
+`
+    : '';
+
   return `import { Router } from 'express';
 import {
   getAllUsers,
@@ -120,7 +223,7 @@ const router = Router();
 // ─────────────────────────────────────────────────────────────────────────────
 // User Routes — /api/v1/users
 // ─────────────────────────────────────────────────────────────────────────────
-
+${swaggerDoc}
 router.get('/',     ${guardStart}getAllUsers);
 router.post('/',    ${guardStart}${validateCreate}createUser);
 router.get('/:id',  ${guardStart}getUserById);
@@ -133,7 +236,7 @@ export default router;
 
 /** Generate src/routes/auth.route.js (JWT only) */
 export function authRoute(options) {
-  const { language, validation } = options;
+  const { language, validation, swagger } = options;
   const isTS = language === 'typescript';
   const hasValidation = validation && validation !== 'none';
 
@@ -153,6 +256,69 @@ export function authRoute(options) {
     }
   }
 
+  const swaggerDoc = swagger
+    ? `/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Register a new user account
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, email, password]
+ *             properties:
+ *               name: { type: string, example: "Jane Doe" }
+ *               email: { type: string, example: "jane@example.com" }
+ *               password: { type: string, example: "Secret123!" }
+ *     responses:
+ *       201:
+ *         description: Registered successfully
+ *
+ * /auth/login:
+ *   post:
+ *     summary: Authenticate user & get JWT tokens
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email: { type: string, example: "jane@example.com" }
+ *               password: { type: string, example: "Secret123!" }
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *
+ * /auth/logout:
+ *   post:
+ *     summary: Invalidate user session
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logged out
+ *
+ * /auth/me:
+ *   get:
+ *     summary: Get profile of logged-in user
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Current user profile
+ */
+`
+    : '';
+
   return `import { Router } from 'express';
 import {
   register,
@@ -168,7 +334,7 @@ const router = Router();
 // ─────────────────────────────────────────────────────────────────────────────
 // Auth Routes — /api/v1/auth
 // ─────────────────────────────────────────────────────────────────────────────
-
+${swaggerDoc}
 router.post('/register', authRateLimiter, ${validateRegister}register);
 router.post('/login',    authRateLimiter, ${validateLogin}login);
 router.post('/logout',   authenticate,   logout);
