@@ -94,6 +94,9 @@ export async function generate(options) {
     await write('.prettierrc',       T.prettierrc());
     await write('eslint.config.js',  T.eslintConfig(options));
     await write('README.md',         T.readme(options));
+    if (hasSwagger) {
+      await write('openapi.yaml',    T.swaggerYaml(options));
+    }
 
     // ── TypeScript extras ─────────────────────────────────────────────────
     if (isTS) {

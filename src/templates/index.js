@@ -16,8 +16,12 @@ export {
 export {
   db,
   envConfig,
-  swaggerConfig,
 } from './config.js';
+
+export {
+  swaggerConfig,
+  swaggerYaml,
+} from './swagger.js';
 
 
 export {

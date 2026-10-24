@@ -23,7 +23,7 @@ npm create wabck@latest my-api
 | 🔐 Auth | JWT, Clerk, Firebase, None |
 | ✅ Validation | Zod, Joi, Express Validator |
 | 🔗 API Style | REST or GraphQL (Apollo Server 4) |
-| 📖 Docs | Swagger / OpenAPI 3 |
+| 📖 Docs | Swagger UI + openapi.yaml (OpenAPI 3.0) |
 | 🐳 Docker | Multi-stage Dockerfile + docker-compose |
 | ⚡ Package managers | npm, pnpm, yarn, bun |
 
@@ -53,6 +53,7 @@ my-api/
 │   ├── graphql/         (GraphQL only)
 │   ├── app.js
 │   └── server.js
+├── openapi.yaml         (optional, OpenAPI 3.0 YAML spec)
 ├── .env.example
 ├── .prettierrc
 ├── eslint.config.js
@@ -74,6 +75,7 @@ my-api/
 | POST | `/api/v1/auth/login` | Login (JWT) |
 | GET | `/api/v1/auth/me` | Profile (JWT) |
 | GET | `/api-docs` | Swagger UI (Interactive Docs) |
+| GET | `/api-docs.yaml` | OpenAPI 3.0 YAML Spec |
 | GET | `/api-docs.json` | OpenAPI 3.0 JSON Spec |
 
 ## 📜 License

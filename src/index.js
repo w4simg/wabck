@@ -85,7 +85,7 @@ function printSuccessSummary(options, projectDir) {
   log.label('  Database',   database === 'none' ? 'None' : database);
   log.label('  Auth',       auth === 'none' ? 'None' : auth);
   if (validation && validation !== 'none') log.label('  Validation', validation);
-  if (swagger)  log.label('  API Docs',   'Swagger UI → /api-docs');
+  if (swagger)  log.label('  OpenAPI Docs', 'Swagger UI → /api-docs (openapi.yaml)');
   if (docker)   log.label('  Docker',     'Dockerfile + docker-compose.yml');
   log.blank();
 

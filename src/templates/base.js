@@ -103,7 +103,7 @@ export function server(options) {
   const dbImport = hasDB ? `import connectDB from './config/db.js';\n` : '';
   const dbConnect = hasDB ? `  await connectDB();\n` : '';
   const swaggerLog = hasSwagger
-    ? `      console.log(\`  ➜  Docs:    http://localhost:\${PORT}/api-docs\`);\n`
+    ? `      console.log(\`  ➜  Docs:    http://localhost:\${PORT}/api-docs\`);\n      console.log(\`  ➜  OpenAPI: http://localhost:\${PORT}/api-docs.yaml (or openapi.yaml)\`);\n`
     : '';
 
   return `import 'dotenv/config';
@@ -346,7 +346,10 @@ ${pm} run dev
 \`\`\`
 
 The API will be available at **http://localhost:5000**
-${swagger ? `\n📖 **API Documentation (Swagger UI):** http://localhost:5000/api-docs\n` : ''}
+${swagger ? `\n📖 **API Documentation:**
+- **Swagger UI:** http://localhost:5000/api-docs
+- **OpenAPI 3.0 YAML:** \`openapi.yaml\` or http://localhost:5000/api-docs.yaml
+- **OpenAPI 3.0 JSON:** http://localhost:5000/api-docs.json\n` : ''}
 ## 📁 Project Structure
 
 \`\`\`
@@ -363,7 +366,7 @@ ${validation !== 'none' ? `│   ├── validators/      # Input validation\n
 │   ├── constants/       # App-wide constants
 │   ├── app.${isTS ? 'ts' : 'js'}           # Express app
 │   └── server.${isTS ? 'ts' : 'js'}        # Entry point
-├── .env.example
+${swagger ? '├── openapi.yaml       # OpenAPI 3.0 specification (YAML)\n' : ''}├── .env.example
 ├── .prettierrc
 └── eslint.config.js
 \`\`\`
@@ -376,7 +379,7 @@ ${validation !== 'none' ? `│   ├── validators/      # Input validation\n
 | Database      | ${database === 'none' ? '—' : database}             |
 | Auth          | ${auth === 'none' ? '—' : auth}                     |
 ${validation !== 'none' ? `| Validation    | ${validation}                                        |\n` : ''}| API Style     | ${apiStyle === 'graphql' ? 'GraphQL (Apollo Server 4)' : 'REST'} |
-${swagger ? '| API Docs      | ✔ Swagger / OpenAPI 3.0 (/api-docs)                  |\n' : ''}| Docker        | ${docker ? '✔ Dockerfile + docker-compose' : '—'}   |
+${swagger ? '| API Docs      | ✔ Swagger / OpenAPI 3.0 (/api-docs + openapi.yaml)  |\n' : ''}| Docker        | ${docker ? '✔ Dockerfile + docker-compose' : '—'}   |
 
 ## 🔗 Endpoints
 
@@ -390,7 +393,7 @@ ${swagger ? '| API Docs      | ✔ Swagger / OpenAPI 3.0 (/api-docs)            
 | PUT    | \`/api/v1/users/:id\` | Update user     |
 | DELETE | \`/api/v1/users/:id\` | Delete user     |
 ${auth === 'jwt' ? `| POST   | \`/api/v1/auth/register\` | Register    |\n| POST   | \`/api/v1/auth/login\` | Login           |` : ''}
-${swagger ? `| GET    | \`/api-docs\`      | Swagger UI (interactive) |\n| GET    | \`/api-docs.json\` | Raw OpenAPI JSON spec    |\n` : ''}
+${swagger ? `| GET    | \`/api-docs\`      | Swagger UI (interactive) |\n| GET    | \`/api-docs.yaml\` | OpenAPI 3.0 YAML spec    |\n| GET    | \`/api-docs.json\` | OpenAPI 3.0 JSON spec    |\n` : ''}
 ${docker ? `## 🐳 Docker\n\n\`\`\`bash\ndocker compose up --build\n\`\`\`\n` : ''}
 ${isTS ? `## 🏗 Build\n\n\`\`\`bash\n${pm} run build\n${pm} start\n\`\`\`\n` : ''}
 ## 📜 License
